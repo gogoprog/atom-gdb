@@ -5,6 +5,16 @@ module.exports = AtomGdb =
   atomGdbView: null
   modalPanel: null
   subscriptions: null
+  config:
+    debuggerCommand:
+      type: 'string'
+      default: 'qtcreator -client -debug'
+    startupDirectory:
+      type: 'string'
+      default: '/home'
+    executablePath:
+      type: 'string'
+      default: ''
 
   activate: (state) ->
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -21,10 +31,17 @@ module.exports = AtomGdb =
 
   start: ->
     console.log 'Starting debugger...'
-    command = 'zenity'
-    args = ['--error']
-    stdout = (output) -> console.log(output)
-    process = new BufferedProcess({command, args, stdout})
+    options =
+      cwd: atom.config.get('atom-gdb.startupDirectory')
+      env: process.env #not functional
+    commandWords = atom.config.get('atom-gdb.debuggerCommand').split " "
+    command = commandWords[0]
+    args = commandWords[1..commandWords.length]
+    args.push atom.config.get('atom-gdb.executablePath')
+    stdout = (output) -> console.log("stdout:", output)
+    stderr = (output) -> console.log("stderr:", output)
+    exit = (return_code) -> console.log("Exit with ", return_code)
+    process = new BufferedProcess({command, args, options, stdout, stderr, exit})
 
   toggle_breakpoint: ->
     console.log 'Breakpoint...'

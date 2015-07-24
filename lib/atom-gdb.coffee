@@ -8,6 +8,7 @@ module.exports = AtomGdb =
   modalPanel: null
   subscriptions: null
   breakPoints: []
+  markers: {}
   config:
     debuggerCommand:
       type: 'string'
@@ -47,14 +48,23 @@ module.exports = AtomGdb =
   toggle_breakpoint: ->
     editor = atom.workspace.getActiveTextEditor()
     filename = path.basename(editor.getPath())
-    row = editor.getCursorBufferPosition().row + 1
+    row = Number(editor.getCursorBufferPosition().row + 1)
     key = filename + ":" + row
     index = @breakPoints.indexOf(key)
     if index == -1
       @breakPoints.push key
+      debugger;
+      #range = new Range([row-1, 0], [row, 0])
+      range = editor.getSelectedBufferRange()
+      marker = editor.markBufferRange(range, {invalidate: 'never'})
+      editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})
+      @markers[key] = marker
       console.log("Added breakpoint:", filename, ":", row)
     else
       @breakPoints.splice(index, 1)
+      @markers[key].destroy()
+      console.log("Removed breakpoint:", filename, ":", row)
+
     @updateGdbInit()
 
   updateGdbInit: ->

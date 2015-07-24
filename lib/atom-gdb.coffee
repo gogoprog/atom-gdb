@@ -1,10 +1,13 @@
 {BufferedProcess} = require 'atom'
 {CompositeDisposable} = require 'atom'
+path = require 'path'
+fs = require 'fs'
 
 module.exports = AtomGdb =
   atomGdbView: null
   modalPanel: null
   subscriptions: null
+  breakPoints: []
   config:
     debuggerCommand:
       type: 'string'
@@ -31,9 +34,6 @@ module.exports = AtomGdb =
 
   start: ->
     console.log 'Starting debugger...'
-    options =
-      cwd: atom.config.get('atom-gdb.startupDirectory')
-      env: process.env #not functional
     commandWords = atom.config.get('atom-gdb.debuggerCommand').split " "
     command = commandWords[0]
     args = commandWords[1..commandWords.length]
@@ -41,9 +41,23 @@ module.exports = AtomGdb =
     stdout = (output) -> console.log("stdout:", output)
     stderr = (output) -> console.log("stderr:", output)
     exit = (return_code) -> console.log("Exit with ", return_code)
-    process = new BufferedProcess({command, args, options, stdout, stderr, exit})
+    process.chdir atom.config.get('atom-gdb.startupDirectory')
+    childProcess = new BufferedProcess({command, args, stdout, stderr, exit})
 
   toggle_breakpoint: ->
-    console.log 'Breakpoint...'
-    editor =  atom.workspace.getActiveTextEditor()
-    console.log editor.getCursorBufferPosition().row + 1
+    editor = atom.workspace.getActiveTextEditor()
+    filename = path.basename(editor.getPath())
+    row = editor.getCursorBufferPosition().row + 1
+    @breakPoints.push {filename:filename, line:row}
+    console.log("Added breakpoint:", filename, ":", row)
+    @updateGdbInit()
+
+  updateGdbInit: ->
+    process.chdir atom.config.get('atom-gdb.startupDirectory')
+    outputFile = fs.createWriteStream(".gdbinit")
+    bps = @breakPoints
+    outputFile.on 'open', (fd) ->
+      outputFile.write "set breakpoint pending on\n"
+      outputFile.write "b " + bp.filename + ":" + bp.line + "\n" for bp in bps
+      outputFile.end()
+      return

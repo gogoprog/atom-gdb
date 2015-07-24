@@ -48,8 +48,13 @@ module.exports = AtomGdb =
     editor = atom.workspace.getActiveTextEditor()
     filename = path.basename(editor.getPath())
     row = editor.getCursorBufferPosition().row + 1
-    @breakPoints.push {filename:filename, line:row}
-    console.log("Added breakpoint:", filename, ":", row)
+    key = filename + ":" + row
+    index = @breakPoints.indexOf(key)
+    if index == -1
+      @breakPoints.push key
+      console.log("Added breakpoint:", filename, ":", row)
+    else
+      @breakPoints.splice(index, 1)
     @updateGdbInit()
 
   updateGdbInit: ->
@@ -58,6 +63,6 @@ module.exports = AtomGdb =
     bps = @breakPoints
     outputFile.on 'open', (fd) ->
       outputFile.write "set breakpoint pending on\n"
-      outputFile.write "b " + bp.filename + ":" + bp.line + "\n" for bp in bps
+      outputFile.write "b " + bp + "\n" for bp in bps
       outputFile.end()
       return

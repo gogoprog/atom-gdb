@@ -58,6 +58,22 @@ module.exports = AtomGdb =
       marker = editor.markBufferRange(range, {invalidate: 'never'})
       editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})
       @markers[key] = marker
+      marker.key = key
+      marker.filename = filename
+
+      bps = @breakPoints
+
+      marker.onDidChange (event) ->
+        old_line = event.oldHeadBufferPosition.row + 1
+        new_line = event.newHeadBufferPosition.row + 1
+        new_key = marker.filename + ':' + new_line
+        bps.splice(bps.indexOf(marker.key), 1)
+        bps.push new_key
+        marker.key = new_key
+        AtomGdb.updateGdbInit()
+        console.log("Moved breakpoint:", filename, ":", old_line, "to", new_line)
+        return
+
       console.log("Added breakpoint:", filename, ":", row)
     else
       @breakPoints.splice(index, 1)

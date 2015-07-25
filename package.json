@@ -1,13 +1,13 @@
 {
   "name": "atom-gdb",
   "main": "./lib/atom-gdb",
-  "version": "0.0.0",
-  "description": "A short description of your package",
+  "version": "0.0.1",
+  "description": "Sets breakpoints in .gdbinit file and starts your favorite gdb debugger frontend",
   "keywords": [
   ],
   "activationCommands": {
   },
-  "repository": "https://github.com/atom/atom-gdb",
+  "repository": "https://github.com/gogoprog/atom-gdb",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"

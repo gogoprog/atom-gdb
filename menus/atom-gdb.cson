@@ -13,7 +13,7 @@
       'label': 'atom-gdb'
       'submenu': [
         {
-          'label': 'Debug'
+          'label': 'Start Debugging'
           'command': 'atom-gdb:start'
         }
       ]

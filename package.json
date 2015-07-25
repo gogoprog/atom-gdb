@@ -1,9 +1,13 @@
 {
   "name": "atom-gdb",
   "main": "./lib/atom-gdb",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sets breakpoints in .gdbinit file and starts your favorite gdb debugger frontend",
-  "keywords": ["gdb", "debug", "breakpoints"],
+  "keywords": [
+    "gdb",
+    "debug",
+    "breakpoints"
+  ],
   "activationCommands": {},
   "repository": "https://github.com/gogoprog/atom-gdb",
   "license": "MIT",

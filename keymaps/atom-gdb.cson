@@ -8,4 +8,5 @@
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
-  'ctrl-alt-o': 'atom-gdb:toggle'
+  'f5': 'atom-gdb:start'
+  'f9': 'atom-gdb:toggle_breakpoint'

@@ -34,15 +34,16 @@ module.exports = AtomGdb =
   serialize: ->
 
   start: ->
-    console.log 'Starting debugger...'
     commandWords = atom.config.get('atom-gdb.debuggerCommand').split " "
     command = commandWords[0]
     args = commandWords[1..commandWords.length]
+    cwd = atom.config.get('atom-gdb.startupDirectory')
     args.push atom.config.get('atom-gdb.executablePath')
     stdout = (output) -> console.log("stdout:", output)
     stderr = (output) -> console.log("stderr:", output)
     exit = (return_code) -> console.log("Exit with ", return_code)
-    process.chdir atom.config.get('atom-gdb.startupDirectory')
+    process.chdir cwd
+    console.log 'Starting debugger :', command, args.join(" "), 'in', cwd
     childProcess = new BufferedProcess({command, args, stdout, stderr, exit})
 
   toggle_breakpoint: ->
@@ -53,8 +54,6 @@ module.exports = AtomGdb =
     index = @breakPoints.indexOf(key)
     if index == -1
       @breakPoints.push key
-      debugger;
-      #range = new Range([row-1, 0], [row, 0])
       range = editor.getSelectedBufferRange()
       marker = editor.markBufferRange(range, {invalidate: 'never'})
       editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})

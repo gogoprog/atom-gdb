@@ -2,6 +2,8 @@
 {CompositeDisposable} = require 'atom'
 path = require 'path'
 fs = require 'fs'
+remote = require "remote"
+dialog = remote.require "dialog"
 
 module.exports = AtomGdb =
   atomGdbView: null
@@ -9,16 +11,11 @@ module.exports = AtomGdb =
   subscriptions: null
   breakPoints: []
   markers: {}
+  settings: {}
   config:
     debuggerCommand:
       type: 'string'
       default: 'qtcreator -client -debug'
-    startupDirectory:
-      type: 'string'
-      default: '/home'
-    executablePath:
-      type: 'string'
-      default: ''
 
   activate: (state) ->
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
@@ -26,6 +23,8 @@ module.exports = AtomGdb =
 
     # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start': => @start()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
     @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggle_breakpoint()
 
   deactivate: ->
@@ -33,18 +32,58 @@ module.exports = AtomGdb =
 
   serialize: ->
 
+  getStartupPath: ->
+    path = atom.config.get('atom-gdb.startupDirectory')
+    path = atom.project.getPaths()[0] if path == ""
+    return path
+
+  getSetting: (name) ->
+    @settings[name] = "" if (name not of @settings or @settings[name] == undefined)
+    return @settings[name]
+
+  runProcess:  (command, args, cwd) ->
+    stdout = (output) -> console.log("stdout:", output)
+    stderr = (output) -> console.log("stderr:", output)
+    exit = (return_code) -> console.log("Exit with ", return_code)
+    console.log 'Starting process :', command, args.join(" "), 'in', cwd
+    process.chdir cwd
+    childProcess = new BufferedProcess({command, args, stdout, stderr, exit})
+
+  selectExecutable: ->
+    value = dialog.showOpenDialog
+      properties: [ 'openFile' ]
+      title: "Select the binary to debug"
+      defaultPath: atom.project.getPaths()[0]
+
+    @settings['executablePath'] = value
+    return value != undefined
+
+  selectStartupDirectory: ->
+    value = dialog.showOpenDialog
+      properties: [ 'openDirectory' ]
+      title: "Select the startup directory"
+      defaultPath: atom.project.getPaths()[0]
+
+    @settings['startupDirectory'] = value[0]
+    return value != undefined
+
   start: ->
     commandWords = atom.config.get('atom-gdb.debuggerCommand').split " "
     command = commandWords[0]
     args = commandWords[1..commandWords.length]
-    cwd = atom.config.get('atom-gdb.startupDirectory')
-    args.push atom.config.get('atom-gdb.executablePath')
-    stdout = (output) -> console.log("stdout:", output)
-    stderr = (output) -> console.log("stderr:", output)
-    exit = (return_code) -> console.log("Exit with ", return_code)
-    process.chdir cwd
-    console.log 'Starting debugger :', command, args.join(" "), 'in', cwd
-    childProcess = new BufferedProcess({command, args, stdout, stderr, exit})
+
+    exe = @getSetting('executablePath')
+    if exe == ""
+      @start() if @selectExecutable()
+      return
+
+    cwd = @getSetting('startupDirectory')
+    if cwd == ""
+      @start() if @selectStartupDirectory()
+      return
+
+    args.push exe
+    @runProcess(command, args, cwd)
 
   toggle_breakpoint: ->
     editor = atom.workspace.getActiveTextEditor()
@@ -83,7 +122,11 @@ module.exports = AtomGdb =
     @updateGdbInit()
 
   updateGdbInit: ->
-    process.chdir atom.config.get('atom-gdb.startupDirectory')
+    cwd = @getSetting('startupDirectory')
+    if cwd == ""
+      @updateGdbInit() if @selectStartupDirectory()
+      return
+    process.chdir cwd
     outputFile = fs.createWriteStream(".gdbinit")
     bps = @breakPoints
     outputFile.on 'open', (fd) ->

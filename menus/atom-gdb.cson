@@ -15,6 +15,14 @@
         {
           'label': 'Start Debugging'
           'command': 'atom-gdb:start'
+        },
+        {
+          'label': 'Select executable to debug'
+          'command': 'atom-gdb:select-executable'
+        },
+        {
+          'label': 'Set startup directory '
+          'command': 'atom-gdb:select-startup-directory'
         }
       ]
     ]

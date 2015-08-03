@@ -25,7 +25,7 @@ module.exports = AtomGdb =
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start': => @start()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
-    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggle_breakpoint()
+    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggleBreakpoint()
 
   deactivate: ->
     @subscriptions.dispose()
@@ -85,7 +85,7 @@ module.exports = AtomGdb =
     args.push exe
     @runProcess(command, args, cwd)
 
-  toggle_breakpoint: ->
+  toggleBreakpoint: ->
     editor = atom.workspace.getActiveTextEditor()
     filename = path.basename(editor.getPath())
     row = Number(editor.getCursorBufferPosition().row + 1)

@@ -10,7 +10,7 @@ module.exports = AtomGdb =
   atomGdbView: null
   modalPanel: null
   subscriptions: null
-  breakPoints: []
+  breakpoints: []
   markers: {}
   settings: {}
   settingsFile: null
@@ -20,10 +20,8 @@ module.exports = AtomGdb =
       default: 'qtcreator -client -debug'
 
   activate: (state) ->
-    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
-    # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start': => @start()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
@@ -31,15 +29,22 @@ module.exports = AtomGdb =
 
     @handleSettingsFile()
 
+    atom.workspace.onDidOpen (event)->
+      if event.uri != undefined
+        for i of AtomGdb.breakpoints
+          item = AtomGdb.breakpoints[i]
+          if item.filepath == event.uri
+            editor = atom.workspace.getActiveTextEditor()
+            marker = editor.markBufferPosition([item.line-1, 0], {invalidate: 'never'})
+            AtomGdb.setupMarker(marker, item)
+
   deactivate: ->
     @subscriptions.dispose()
 
-  serialize: ->
-
   getStartupPath: ->
-    path = atom.config.get('atom-gdb.startupDirectory')
-    path = atom.project.getPaths()[0] if path == ""
-    return path
+    _path = atom.config.get('atom-gdb.startupDirectory')
+    _path = atom.project.getPaths()[0] if _path == ""
+    return _path
 
   getSetting: (name) ->
     @settings[name] = "" if (name not of @settings or @settings[name] == undefined)
@@ -90,46 +95,49 @@ module.exports = AtomGdb =
     cwd = @getSetting('startupDirectory')
     if cwd == ""
       @start() if @selectStartupDirectory()
-      return
+      returnre
 
     args.push exe
     @runProcess(command, args, cwd)
 
   toggleBreakpoint: ->
     editor = atom.workspace.getActiveTextEditor()
-    filename = path.basename(editor.getPath())
-    row = Number(editor.getCursorBufferPosition().row + 1)
-    key = filename + ":" + row
-    index = @breakPoints.indexOf(key)
+    item =
+      filepath: editor.getPath()
+      filename: path.basename(editor.getPath())
+      line: Number(editor.getCursorBufferPosition().row + 1)
+
+    index = @findBreakpointIndex(item)
     if index == -1
-      @breakPoints.push key
+      @breakpoints.push item
       range = editor.getSelectedBufferRange()
       marker = editor.markBufferRange(range, {invalidate: 'never'})
-      editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})
-      @markers[key] = marker
-      marker.key = key
-      marker.filename = filename
 
-      bps = @breakPoints
+      @setupMarker(marker, item)
 
-      marker.onDidChange (event) ->
-        old_line = event.oldHeadBufferPosition.row + 1
-        new_line = event.newHeadBufferPosition.row + 1
-        new_key = marker.filename + ':' + new_line
-        bps.splice(bps.indexOf(marker.key), 1)
-        bps.push new_key
-        marker.key = new_key
-        AtomGdb.updateGdbInit()
-        console.log("Moved breakpoint:", filename, ":", old_line, "to", new_line)
-        return
-
-      console.log("Added breakpoint:", filename, ":", row)
+      console.log("Added breakpoint:", item.filename, ":", item.line)
     else
-      @breakPoints.splice(index, 1)
-      @markers[key].destroy()
-      console.log("Removed breakpoint:", filename, ":", row)
+      @breakpoints.splice(index, 1)
+      @markers[@generateKey(item)].destroy()
+      console.log("Removed breakpoint:", item.filename, ":", item.line)
 
     @updateGdbInit()
+
+  setupMarker: (marker, item) ->
+    editor = atom.workspace.getActiveTextEditor()
+    editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})
+    @markers[@generateKey(item)] = marker
+    marker.item = item
+
+    bps = @breakpoints
+
+    marker.onDidChange (event) ->
+      old_line = event.oldHeadBufferPosition.row + 1
+      new_line = event.newHeadBufferPosition.row + 1
+      marker.item.line = new_line
+      AtomGdb.updateGdbInit()
+      console.log("Moved breakpoint:", item.filename, ":", old_line, "to", new_line)
+      return
 
   updateGdbInit: ->
     cwd = @getSetting('startupDirectory')
@@ -138,16 +146,16 @@ module.exports = AtomGdb =
       return
     process.chdir cwd
     outputFile = fs.createWriteStream(".gdbinit")
-    bps = @breakPoints
+    bps = @breakpoints
     outputFile.on 'open', (fd) ->
       outputFile.write "set breakpoint pending on\n"
-      outputFile.write "b " + bp + "\n" for bp in bps
+      outputFile.write "b " + AtomGdb.generateKey(item) + "\n" for item in bps
       outputFile.end()
       return
 
   handleSettingsFile: ->
-    path = atom.project.getPaths()[0]
-    @settingsFile = new File(path+"/.atom-gdb.json", false)
+    _path = atom.project.getPaths()[0]
+    @settingsFile = new File(_path+"/.atom-gdb.json", false)
     if @settingsFile.exists()
       @settingsFile.read()
         .then (content) ->
@@ -161,3 +169,16 @@ module.exports = AtomGdb =
 
   updateSettingsFile: ->
     @settingsFile.write(JSON.stringify(@settings, null, 2))
+
+  generateKey: (item) ->
+      return item.filename + ":" + item.line
+
+  findBreakpointIndex: (_item) ->
+    i = 0
+    length = @breakpoints.length
+    while i < length
+      item = @breakpoints[i]
+      if item.filepath == _item.filepath and item.line == _item.line
+        return i
+      ++i
+    return -1

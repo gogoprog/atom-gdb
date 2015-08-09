@@ -23,6 +23,7 @@ module.exports = AtomGdb =
     @subscriptions = new CompositeDisposable
 
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start': => @start()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start-no-debug': => @startNoDebug()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
     @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggleBreakpoint()
@@ -99,6 +100,20 @@ module.exports = AtomGdb =
 
     args.push exe
     @runProcess(command, args, cwd)
+
+  startNoDebug: ->
+    exe = @getSetting('executablePath')
+    if exe == ""
+      @start() if @selectExecutable()
+      return
+
+    cwd = @getSetting('startupDirectory')
+    if cwd == ""
+      @start() if @selectStartupDirectory()
+      returnre
+
+    command = exe
+    @runProcess(command, [], cwd)
 
   toggleBreakpoint: ->
     editor = atom.workspace.getActiveTextEditor()

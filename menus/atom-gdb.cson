@@ -16,11 +16,15 @@
           'command': 'atom-gdb:start'
         },
         {
-          'label': 'Select executable to debug'
+          'label': 'Start Without Debugging'
+          'command': 'atom-gdb:start-no-debug'
+        },
+        {
+          'label': 'Select Binary To Debug'
           'command': 'atom-gdb:select-executable'
         },
         {
-          'label': 'Set startup directory '
+          'label': 'Select Startup Directory'
           'command': 'atom-gdb:select-startup-directory'
         }
       ]

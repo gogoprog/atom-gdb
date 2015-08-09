@@ -175,12 +175,15 @@ module.exports = AtomGdb =
       @settingsFile.read()
         .then (content) ->
           AtomGdb.settings = JSON.parse(content)
+          AtomGdb.settings = {} if AtomGdb.settings == null
     else
       @settingsFile.create()
+
     @settingsFile.onDidChange ->
       AtomGdb.settingsFile.read()
         .then (content) ->
           AtomGdb.settings = JSON.parse(content)
+          AtomGdb.settings = {} if AtomGdb.settings == null
 
   updateSettingsFile: ->
     @settingsFile.write(JSON.stringify(@settings, null, 2))

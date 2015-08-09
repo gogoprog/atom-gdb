@@ -1,5 +1,6 @@
 {BufferedProcess} = require 'atom'
 {CompositeDisposable} = require 'atom'
+{File} = require 'atom'
 path = require 'path'
 fs = require 'fs'
 remote = require "remote"
@@ -12,6 +13,7 @@ module.exports = AtomGdb =
   breakPoints: []
   markers: {}
   settings: {}
+  settingsFile: null
   config:
     debuggerCommand:
       type: 'string'
@@ -26,6 +28,8 @@ module.exports = AtomGdb =
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
     @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggleBreakpoint()
+
+    @handleSettingsFile()
 
   deactivate: ->
     @subscriptions.dispose()
@@ -55,7 +59,10 @@ module.exports = AtomGdb =
       title: "Select the binary to debug"
       defaultPath: atom.project.getPaths()[0]
 
-    @settings['executablePath'] = value
+    if value != undefined
+      @settings['executablePath'] = value[0]
+      @updateSettingsFile()
+
     return value != undefined
 
   selectStartupDirectory: ->
@@ -64,7 +71,10 @@ module.exports = AtomGdb =
       title: "Select the startup directory"
       defaultPath: atom.project.getPaths()[0]
 
-    @settings['startupDirectory'] = value[0]
+    if value != undefined
+      @settings['startupDirectory'] = value[0]
+      @updateSettingsFile()
+
     return value != undefined
 
   start: ->
@@ -134,3 +144,20 @@ module.exports = AtomGdb =
       outputFile.write "b " + bp + "\n" for bp in bps
       outputFile.end()
       return
+
+  handleSettingsFile: ->
+    path = atom.project.getPaths()[0]
+    @settingsFile = new File(path+"/.atom-gdb.json", false)
+    if @settingsFile.exists()
+      @settingsFile.read()
+        .then (content) ->
+          AtomGdb.settings = JSON.parse(content)
+    else
+      @settingsFile.create()
+    @settingsFile.onDidChange ->
+      AtomGdb.settingsFile.read()
+        .then (content) ->
+          AtomGdb.settings = JSON.parse(content)
+
+  updateSettingsFile: ->
+    @settingsFile.write(JSON.stringify(@settings, null, 2))

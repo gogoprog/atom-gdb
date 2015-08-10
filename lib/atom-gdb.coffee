@@ -26,7 +26,7 @@ module.exports = AtomGdb =
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:start-no-debug': => @startNoDebug()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-executable': => @selectExecutable()
     @subscriptions.add atom.commands.add 'atom-workspace', 'atom-gdb:select-startup-directory': => @selectStartupDirectory()
-    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle_breakpoint': => @toggleBreakpoint()
+    @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle-breakpoint': => @toggleBreakpoint()
 
     @handleSettingsFile()
 
@@ -96,7 +96,7 @@ module.exports = AtomGdb =
     cwd = @getSetting('startupDirectory')
     if cwd == ""
       @start() if @selectStartupDirectory()
-      returnre
+      return
 
     args.push exe
     @runProcess(command, args, cwd)
@@ -110,7 +110,7 @@ module.exports = AtomGdb =
     cwd = @getSetting('startupDirectory')
     if cwd == ""
       @start() if @selectStartupDirectory()
-      returnre
+      return
 
     command = exe
     @runProcess(command, [], cwd)

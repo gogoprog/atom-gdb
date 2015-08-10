@@ -9,4 +9,5 @@
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
   'f5': 'atom-gdb:start'
-  'f9': 'atom-gdb:toggle_breakpoint'
+  'ctrl-f5': 'atom-gdb:start-no-debug'
+  'f9': 'atom-gdb:toggle-breakpoint'

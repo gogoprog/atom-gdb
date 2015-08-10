@@ -2,7 +2,7 @@
   'atom-text-editor': [
     {
       'label': 'Toggle gdb breakpoint'
-      'command': 'atom-gdb:toggle_breakpoint'
+      'command': 'atom-gdb:toggle-breakpoint'
     }
   ]
 'menu': [

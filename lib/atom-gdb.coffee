@@ -18,6 +18,9 @@ module.exports = AtomGdb =
     debuggerCommand:
       type: 'string'
       default: 'qtcreator -client -debug'
+    saveOnStart:
+      type:'boolean'
+      default:true
 
   activate: (state) ->
     @subscriptions = new CompositeDisposable
@@ -84,6 +87,7 @@ module.exports = AtomGdb =
     return value != undefined
 
   start: ->
+    @saveAll() if atom.config.get('atom-gdb.saveOnStart')
     commandWords = atom.config.get('atom-gdb.debuggerCommand').split " "
     command = commandWords[0]
     args = commandWords[1..commandWords.length]
@@ -102,6 +106,7 @@ module.exports = AtomGdb =
     @runProcess(command, args, cwd)
 
   startNoDebug: ->
+    @saveAll() if atom.config.get('atom-gdb.saveOnStart')
     exe = @getSetting('executablePath')
     if exe == ""
       @start() if @selectExecutable()
@@ -200,3 +205,8 @@ module.exports = AtomGdb =
         return i
       ++i
     return -1
+
+  saveAll: ->
+    editors = atom.workspace.getTextEditors()
+    for i of editors
+        editors[i].save()

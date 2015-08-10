@@ -32,6 +32,7 @@ module.exports = AtomGdb =
     @subscriptions.add atom.commands.add 'atom-text-editor', 'atom-gdb:toggle-breakpoint': => @toggleBreakpoint()
 
     @handleSettingsFile()
+    @checkGlobalGdbInit()
 
     atom.workspace.onDidOpen (event)->
       if event.uri != undefined
@@ -209,4 +210,14 @@ module.exports = AtomGdb =
   saveAll: ->
     editors = atom.workspace.getTextEditors()
     for i of editors
-        editors[i].save()
+      editors[i].save()
+
+  checkGlobalGdbInit: ->
+    globalGdbInitFile = new File(process.env['HOME'] + "/.gdbinit", false)
+    globalGdbInitFile.read()
+      .then (content) ->
+        if content == null or not content.match /^set auto-load safe-path/m
+          globalGdbInitFile.write (content or "") + "\n# Added by atom-gdb\nset auto-load safe-path /"
+          console.log "~/.gdbinit has been updated for atom-gdb"
+        else
+          console.log "~/.gdbinit is fine for atom-gdb"

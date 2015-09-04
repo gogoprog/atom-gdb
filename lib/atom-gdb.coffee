@@ -18,6 +18,9 @@ module.exports = AtomGdb =
     debuggerCommand:
       type: 'string'
       default: 'qtcreator -client -debug'
+    executableSuffix:
+      type: 'string'
+      default: ''
     saveOnStart:
       type:'boolean'
       default:true
@@ -103,7 +106,7 @@ module.exports = AtomGdb =
       @start() if @selectStartupDirectory()
       return
 
-    args.push exe
+    args.push (exe+atom.config.get('atom-gdb.executableSuffix'))
     @runProcess(command, args, cwd)
 
   startNoDebug: ->

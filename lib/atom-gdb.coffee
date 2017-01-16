@@ -3,8 +3,7 @@
 {File} = require 'atom'
 path = require 'path'
 fs = require 'fs'
-remote = require "remote"
-dialog = remote.require "dialog"
+{dialog} = require 'remote'
 
 module.exports = AtomGdb =
   atomGdbView: null

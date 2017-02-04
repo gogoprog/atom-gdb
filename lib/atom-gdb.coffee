@@ -148,7 +148,7 @@ module.exports = AtomGdb =
 
   setupMarker: (marker, item) ->
     editor = atom.workspace.getActiveTextEditor()
-    editor.decorateMarker(marker, {type: 'line-number', class: 'breakpoint'})
+    editor.decorateMarker(marker, {type: 'line-number', class: 'syntax--breakpoint'})
     @markers[@generateKey(item)] = marker
     marker.item = item
 

@@ -12,19 +12,23 @@
       'label': 'Atom Gdb'
       'submenu': [
         {
-          'label': 'Start Debugging'
+          'label': 'Start debugging'
           'command': 'atom-gdb:start'
         },
         {
-          'label': 'Start Without Debugging'
+          'label': 'Start without debugging'
           'command': 'atom-gdb:start-no-debug'
         },
         {
-          'label': 'Select Binary To Debug'
+          'label': 'Stop running process'
+          'command': 'atom-gdb:stop'
+        },
+        {
+          'label': 'Select binary to debug'
           'command': 'atom-gdb:select-executable'
         },
         {
-          'label': 'Select Startup Directory'
+          'label': 'Select startup directory'
           'command': 'atom-gdb:select-startup-directory'
         }
       ]

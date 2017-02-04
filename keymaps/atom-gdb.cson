@@ -10,4 +10,5 @@
 'atom-workspace':
   'f5': 'atom-gdb:start'
   'ctrl-f5': 'atom-gdb:start-no-debug'
+  'shift-f5': 'atom-gdb:stop'
   'f9': 'atom-gdb:toggle-breakpoint'

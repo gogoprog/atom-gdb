@@ -1,7 +1,7 @@
 {
   "name": "atom-gdb",
   "main": "./lib/atom-gdb",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Sets breakpoints in .gdbinit file and starts your favorite gdb debugger frontend",
   "keywords": [
     "gdb",

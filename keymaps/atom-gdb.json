@@ -1,0 +1,8 @@
+{
+  "atom-text-editor[data-grammar='source cpp'], atom-text-editor[data-grammar='source h'], atom-text-editor[data-grammar='source c']": {
+    "f5": "atom-gdb:start"
+    "ctrl-f5": "atom-gdb:start-no-debug"
+    "shift-f5": "atom-gdb:stop"
+    "f9": "atom-gdb:toggle-breakpoint"
+  }
+}
